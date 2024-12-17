@@ -141,6 +141,20 @@ class ComputerDetailScreen extends StatelessWidget {
               margin: const EdgeInsets.only(top: 10.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey, // Button color
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  await sendDeviceCommand("DisableRemoteDesktop",
+                      deviceDetails['computer']['general']['id'].toString());
+                },
+                child: Text('Disable Remote Desktop'),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 10.0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red, // Button color
                   foregroundColor: Colors.white,
                 ),
@@ -189,7 +203,7 @@ class ComputerDetailScreen extends StatelessWidget {
                     );
                   }
                 },
-                child: Text('Disable Remote Desktop'),
+                child: Text('Lock Device'),
               ),
             ),
           ],
