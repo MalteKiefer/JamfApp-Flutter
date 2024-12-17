@@ -484,6 +484,27 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  ListTile(
+                    leading: Icon(Icons.dns),
+                    title: Text('Server'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ServerScreen()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.update),
+                    title: Text('Server'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => UpdatesScreen()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -607,6 +628,58 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class UpdatesScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    List<String> updates = [
+      'Update 1: New features added.',
+      'Update 2: Bug fixes applied.',
+      'Update 3: System performance improved.',
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Updates'),
+      ),
+      body: ListView.builder(
+        itemCount: updates.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: Icon(Icons.update),
+            title: Text(updates[index]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ServerScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    List<String> servers = [
+      'Server 1: Online',
+      'Server 2: Offline',
+      'Server 3: Maintenance',
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Server'),
+      ),
+      body: ListView.builder(
+        itemCount: servers.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: Icon(Icons.computer),
+            title: Text(servers[index]),
+          );
+        },
       ),
     );
   }
