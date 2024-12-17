@@ -6,6 +6,7 @@ import 'screens/settings.dart';
 import 'screens/devicedetail.dart';
 import 'screens/computerdetail.dart';
 import 'package:intl/intl.dart';
+import 'helper/func.dart';
 
 void main() => runApp(JamfProApp());
 
@@ -147,30 +148,65 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Jamf Pro Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _urlController,
-              decoration: InputDecoration(labelText: 'Jamf Pro URL'),
+      body: Center(
+        // Zentriert die Inhalte horizontal und vertikal
+        child: SingleChildScrollView(
+          // Scrollbar bei kleineren Bildschirmen
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Minimale Größe der Column
+              children: [
+                // Logo
+                Image.asset(
+                  'assets/logo.png', // Ersetze durch deinen Pfad zum Logo
+                  height: 100,
+                  width: 100,
+                ),
+                SizedBox(height: 30),
+
+                // URL Eingabefeld
+                TextField(
+                  controller: _urlController,
+                  decoration: InputDecoration(
+                    labelText: 'Jamf Pro URL',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                // Username Eingabefeld
+                TextField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                // Passwort Eingabefeld
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                ),
+                SizedBox(height: 30),
+
+                // Login Button
+                ElevatedButton(
+                  onPressed: _login,
+                  child: Text('Login'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              child: Text('Login'),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -197,7 +233,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
       String deviceId, bool isMobile) async {
     final prefs = await SharedPreferences.getInstance();
     final url = prefs.getString('url') ?? '';
-    final authToken = prefs.getString('authToken') ?? '';
+    final authToken = await getValidToken();
     final endpoint = isMobile
         ? '$url/JSSResource/mobiledevices/id/$deviceId'
         : '$url/JSSResource/computers/id/$deviceId';

@@ -4,52 +4,63 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
-Future<String> getValidToken() async {
+Future<String?> getValidToken() async {
   final prefs = await SharedPreferences.getInstance();
-  final savedToken = await getValidToken();
+  final savedToken =
+      prefs.getString('authToken'); // Lade den gespeicherten Token
   final savedUrl = prefs.getString('url') ?? '';
   final savedUsername = prefs.getString('username') ?? '';
   final savedPassword = prefs.getString('password') ?? '';
 
   if (savedToken != null) {
     // Überprüfen, ob der Token gültig ist
-    final verifyResponse = await http.get(
-      Uri.parse('$savedUrl/api/v1/auth/verify-token'),
+    try {
+      final verifyResponse = await http.get(
+        Uri.parse('$savedUrl/api/v1/auth/verify-token'),
+        headers: {
+          'Authorization': 'Bearer $savedToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (verifyResponse.statusCode == 200) {
+        return savedToken; // Token ist gültig
+      }
+    } catch (e) {
+      print('Token verification failed: $e');
+    }
+  }
+
+  // Falls der Token nicht vorhanden oder ungültig ist, generiere einen neuen Token
+  try {
+    final tokenResponse = await http.post(
+      Uri.parse('$savedUrl/api/v1/auth/token'),
       headers: {
-        'Authorization': 'Bearer $savedToken',
+        'Authorization': 'Basic ' +
+            base64Encode(utf8.encode('$savedUsername:$savedPassword')),
         'Accept': 'application/json',
       },
     );
 
-    if (verifyResponse.statusCode == 200) {
-      return savedToken; // Gültiger Token
+    if (tokenResponse.statusCode == 200) {
+      final tokenData = json.decode(tokenResponse.body);
+      final newToken = tokenData['token'];
+      await prefs.setString('authToken', newToken); // Speichere den neuen Token
+      return newToken;
+    } else {
+      print('Token generation failed with status: ${tokenResponse.statusCode}');
+      return null;
     }
-  }
-
-  // Neuer Token wird generiert
-  final tokenResponse = await http.post(
-    Uri.parse('$savedUrl/api/v1/auth/token'),
-    headers: {
-      'Authorization':
-          'Basic ' + base64Encode(utf8.encode('$savedUsername:$savedPassword')),
-      'Accept': 'application/json',
-    },
-  );
-
-  if (tokenResponse.statusCode == 200) {
-    final tokenData = json.decode(tokenResponse.body);
-    final newToken = tokenData['token'];
-    await prefs.setString('authToken', newToken);
-    return newToken;
-  } else {
-    return tokenResponse.statusCode.toString();
+  } catch (e) {
+    print('Error during token generation: $e');
+    return null;
   }
 }
 
 Future<String?> sendMobileDeviceCommand(String command, String deviceId) async {
   final prefs = await SharedPreferences.getInstance();
   final url = prefs.getString('url') ?? '';
-  final authToken = prefs.getString('authToken') ?? '';
+  final authToken = await getValidToken();
   Uri fullurl = Uri();
   String? generatedCode;
 
@@ -89,7 +100,7 @@ Future<String?> sendMobileDeviceCommand(String command, String deviceId) async {
 Future<void> sendDeviceCommand(String command, String deviceId) async {
   final prefs = await SharedPreferences.getInstance();
   final url = prefs.getString('url') ?? '';
-  final authToken = prefs.getString('authToken') ?? '';
+  final authToken = await getValidToken();
 
   final fullurl = Uri.parse(
       '$url/JSSResource/computercommands/command/$command/id/$deviceId');
