@@ -10,8 +10,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _urlController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  
-  String? _offlineDuration; // Variable, um die Auswahl des Dropdowns zu speichern
+
+  String?
+      _offlineDuration; // Variable, um die Auswahl des Dropdowns zu speichern
 
   @override
   void initState() {
@@ -25,7 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _urlController.text = prefs.getString('url') ?? '';
     _usernameController.text = prefs.getString('username') ?? '';
     _passwordController.text = prefs.getString('password') ?? '';
-    
+
     // Setzt die gespeicherte Offline-Dauer oder den Standardwert '30 min'
     setState(() {
       final _minutes = prefs.getInt('offline_duration') ?? 30;
@@ -37,12 +38,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     int durationInMinutes = _offlineDuration?.split(' ')[0] != null
-    ? int.parse(_offlineDuration!.split(' ')[0])
-    : 0;
+        ? int.parse(_offlineDuration!.split(' ')[0])
+        : 0;
     prefs.setString('url', _urlController.text);
     prefs.setString('username', _usernameController.text);
     prefs.setString('password', _passwordController.text);
-    prefs.setInt('offline_duration', durationInMinutes ?? 30); // Offline-Dauer speichern
+    prefs.setInt(
+        'offline_duration', durationInMinutes ?? 30); // Offline-Dauer speichern
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Settings saved successfully!')),
     );
@@ -114,9 +116,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Text('Computer offline after: '),
                         DropdownButton<String>(
-                          value: _offlineDuration, // Zeigt den gespeicherten Wert oder den Standardwert an
-                          items: <String>['5 min', '10 min', '15 min', '20 min', '30 min', '60 min']
-                              .map<DropdownMenuItem<String>>((String value) {
+                          value:
+                              _offlineDuration, // Zeigt den gespeicherten Wert oder den Standardwert an
+                          items: <String>[
+                            '5 min',
+                            '10 min',
+                            '15 min',
+                            '20 min',
+                            '30 min',
+                            '60 min'
+                          ].map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),

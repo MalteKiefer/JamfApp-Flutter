@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
           final computerData = json.decode(computerResponse.body);
           final computers = (computerData['computers'] as List).toList()
             ..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
-            print(devices);
+          print(devices);
 
           Navigator.pushReplacement(
             context,
@@ -192,7 +192,6 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   bool showOfflineComputers = false;
   int offlineDuration = 30; // Default value
 
-
   // Gemeinsame Methode für API-Aufrufe
   Future<Map<String, dynamic>?> _fetchDeviceDetails(
       String deviceId, bool isMobile) async {
@@ -243,7 +242,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     }
   }
 
-    @override
+  @override
   void initState() {
     super.initState();
     _loadOfflineDuration();
@@ -270,7 +269,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
         final reportDateUtc = DateTime.parse(reportDateUtcRaw ?? '');
         final nowUtc = DateTime.now().toUtc();
         final diffInMinutes = nowUtc.difference(reportDateUtc).inMinutes;
-        offlineSystem = diffInMinutes > offlineDuration; //offline more than 30 minutes
+        offlineSystem =
+            diffInMinutes > offlineDuration; //offline more than 30 minutes
       }
 
       // Filter based on search query and offline status for computers
@@ -319,37 +319,61 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
               itemCount: filteredDevices.length,
               itemBuilder: (context, index) {
                 final device = filteredDevices[index];
-                final isSupervised = (device['supervised'] == true || device['managed'] == true);
+                final isSupervised =
+                    (device['supervised'] == true || device['managed'] == true);
                 final username = device['username'];
                 final lastcheckindate = device['report_date_utc'];
                 bool offline = false;
 
-                if(!widget.isMobile)
-                {
+                if (!widget.isMobile) {
                   final reportDateUtcRaw = device['report_date_utc'];
                   final reportDateUtc = DateTime.parse(reportDateUtcRaw ?? '');
                   final nowUtc = DateTime.now().toUtc();
-                  final diffInMinutes = nowUtc.difference(reportDateUtc).inMinutes;
-                  offline = diffInMinutes > offlineDuration; // Mark as offline if more than 30 minutes
+                  final diffInMinutes =
+                      nowUtc.difference(reportDateUtc).inMinutes;
+                  offline = diffInMinutes >
+                      offlineDuration; // Mark as offline if more than 30 minutes
                 }
 
                 return ListTile(
-                leading: Icon(
-                  widget.isMobile
-                      ? Icons.phone_android // Immer Handy-Icon für mobile Geräte
-                      : Icons.computer,     // Computer-Icon für Computer
-                  color: widget.isMobile
-                      ? Colors.lightGreen // Immer grün für mobile Geräte
-                      : (offline ? Colors.blueGrey : Colors.lightGreen), // Grau oder grün für Computer
-                ),
+                  leading: Icon(
+                    widget.isMobile
+                        ? Icons
+                            .phone_android // Immer Handy-Icon für mobile Geräte
+                        : Icons.computer, // Computer-Icon für Computer
+                    color: widget.isMobile
+                        ? Colors.lightGreen // Immer grün für mobile Geräte
+                        : (offline
+                            ? Colors.blueGrey
+                            : Colors.lightGreen), // Grau oder grün für Computer
+                  ),
                   title: Text(device['name'] ?? 'Unknown Device'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if(!widget.isMobile) Text('Last Checkin: ' + DateFormat('HH:mm, dd.MM.yyyy').format(DateTime.parse(lastcheckindate).toLocal())),
-                      if (username != null && username.isNotEmpty) Text(username, style: TextStyle(color: Colors.black, fontWeight: FontWeight.w400)) else Text('-', style: TextStyle(color: const Color.fromARGB(255, 153, 148, 148))),
+                      if (!widget.isMobile)
+                        Text('Last Checkin: ' +
+                            DateFormat('HH:mm, dd.MM.yyyy').format(
+                                DateTime.parse(lastcheckindate).toLocal())),
+                      if (username != null && username.isNotEmpty)
+                        Text(username,
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w400))
+                      else
+                        Text('-',
+                            style: TextStyle(
+                                color:
+                                    const Color.fromARGB(255, 153, 148, 148))),
                       Text('Model: ${device['model']}'),
-                      if (isSupervised) Text('COBO', style: TextStyle(color: const Color.fromARGB(255, 66, 143, 43))) else Text('BYOD', style: TextStyle(color: const Color.fromARGB(255, 236, 99, 99))),
+                      if (isSupervised)
+                        Text('COBO',
+                            style: TextStyle(
+                                color: const Color.fromARGB(255, 66, 143, 43)))
+                      else
+                        Text('BYOD',
+                            style: TextStyle(
+                                color: const Color.fromARGB(255, 236, 99, 99))),
                     ],
                   ),
                   onTap: () => _showDeviceDetails(device['id'].toString()),
