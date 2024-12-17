@@ -52,7 +52,8 @@ class ComputerDetailScreen extends StatelessWidget {
                         .toString() ??
                     'N/A',
                 'Name': deviceDetails['computer']['location']['realname']
-                        .toString() ?? 'N/A',
+                        .toString() ??
+                    'N/A',
                 'E-Mailadress': deviceDetails['computer']['location']
                         ['email_address'] ??
                     'N/A',
@@ -63,8 +64,7 @@ class ComputerDetailScreen extends StatelessWidget {
               items: {
                 'IP':
                     deviceDetails['computer']['general']['ip_address'] ?? 'N/A',
-                'Mac': deviceDetails['computer']['general']
-                        ['mac_address'] ??
+                'Mac': deviceDetails['computer']['general']['mac_address'] ??
                     'N/A',
               },
             ),
@@ -73,8 +73,9 @@ class ComputerDetailScreen extends StatelessWidget {
               items: {
                 'OS Type':
                     deviceDetails['computer']['hardware']['os_name'] ?? 'N/A',
-                'OS Version':
-                    deviceDetails['computer']['hardware']['os_version'] ?? 'N/A',
+                'OS Version': deviceDetails['computer']['hardware']
+                        ['os_version'] ??
+                    'N/A',
                 'OS Build':
                     deviceDetails['computer']['hardware']['os_build'] ?? 'N/A',
               },
@@ -92,8 +93,8 @@ class ComputerDetailScreen extends StatelessWidget {
                         false)
                     ? 'Yes'
                     : 'No',
-                'Activation lock enabled?': (deviceDetails['computer']['security']
-                            ['activation_lock'] ??
+                'Activation lock enabled?': (deviceDetails['computer']
+                            ['security']['activation_lock'] ??
                         false)
                     ? 'Yes'
                     : 'No',
@@ -117,10 +118,10 @@ class ComputerDetailScreen extends StatelessWidget {
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
-                await sendMobileDeviceCommand("DeviceLock",
+                await sendDeviceCommand("BlankPush",
                     deviceDetails['computer']['general']['id'].toString());
               },
-              child: Text('Lock Device'),
+              child: Text('Send Blank Push'),
             ),
             Container(
               margin: const EdgeInsets.only(top: 10.0),
@@ -130,24 +131,10 @@ class ComputerDetailScreen extends StatelessWidget {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
-                  await sendMobileDeviceCommand("RestartDevice",
+                  await sendDeviceCommand("EnableRemoteDesktop",
                       deviceDetails['computer']['general']['id'].toString());
                 },
-                child: Text('Restart Device'),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 10.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Button color
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () async {
-                  await sendMobileDeviceCommand("UpdateInventory",
-                      deviceDetails['computer']['general']['id'].toString());
-                },
-                child: Text('Update Inventory'),
+                child: Text('Enable Remote Desktop'),
               ),
             ),
             Container(
@@ -158,43 +145,51 @@ class ComputerDetailScreen extends StatelessWidget {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text('Confirm Erase Device'),
-                        content: Text(
-                            'Are you sure you want to erase this device? This action cannot be undone.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: Text('Confirm'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  String? generatedCode = await sendMobileDeviceCommand(
+                      "DeviceLock",
+                      deviceDetails['computer']['general']['id'].toString());
 
-                  if (confirmed == true) {
-                    await sendMobileDeviceCommand(
-                      "EraseDevice",
-                      deviceDetails['computer']['general']['id'].toString(),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erase Device command sent.')),
+                  if (generatedCode != null) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Device Locked'),
+                          content: Text(
+                              'The device has been locked. Passcode: $generatedCode'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Erase Device command cancelled.')),
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Error'),
+                          content: Text(
+                              'Failed to lock the device. Please try again.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
                     );
                   }
                 },
-                child: Text('Erase Device'),
+                child: Text('Disable Remote Desktop'),
               ),
             ),
           ],
