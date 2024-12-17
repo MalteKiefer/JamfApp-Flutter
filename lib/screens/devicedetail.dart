@@ -11,7 +11,7 @@ class DeviceDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Map<String, String> applicationItems = {};
     for (final app in deviceDetails['mobile_device']['applications']) {
-      final appName = app['application_name'] ?? 'Unknown App';
+      final appName = app['name'] ?? 'Unknown App';
       final appInfo = 'Version: ${app['application_short_version'] ?? 'N/A'}\n'
           'Identifier: ${app['identifier'] ?? 'N/A'}';
       applicationItems[appName] = appInfo;

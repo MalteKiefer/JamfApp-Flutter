@@ -10,17 +10,20 @@ class ComputerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, String> applicationItems = {};
-    for (final app in deviceDetails['mobile_device']['applications']) {
-      final appName = app['application_name'] ?? 'Unknown App';
-      final appInfo = 'Version: ${app['application_short_version'] ?? 'N/A'}\n'
-          'Identifier: ${app['identifier'] ?? 'N/A'}';
-      applicationItems[appName] = appInfo;
+    if (deviceDetails['computer']['software']['applications'] != null &&
+        deviceDetails['computer']['software']['applications'] is Iterable) {
+      for (final app in deviceDetails['computer']['software']['applications']) {
+        final appName = app['name'] ?? 'Unknown App';
+        final appInfo = 'Version: ${app['version'] ?? 'N/A'}\n'
+            'Bundle Id: ${app['bundle_id'] ?? 'N/A'}';
+        applicationItems[appName] = appInfo;
+      }
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(deviceDetails['mobile_device']['general']['name'] ??
-            'Device Details'),
+        title: Text(
+            deviceDetails['computer']['general']['name'] ?? 'Device Details'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -29,73 +32,78 @@ class ComputerDetailScreen extends StatelessWidget {
             Section(
               title: 'Device',
               items: {
-                'ID': deviceDetails['mobile_device']['general']['id']
-                        .toString() ??
+                'ID': deviceDetails['computer']['general']['id'].toString() ??
                     'N/A',
                 'Model':
-                    deviceDetails['mobile_device']['general']['model'] ?? 'N/A',
-                'Seriennummer': deviceDetails['mobile_device']['general']
+                    deviceDetails['computer']['hardware']['model'] ?? 'N/A',
+                'Seriennummer': deviceDetails['computer']['general']
                         ['serial_number'] ??
                     'N/A',
-                'UDID':
-                    deviceDetails['mobile_device']['general']['udid'] ?? 'N/A',
-                'Model Identifier': deviceDetails['mobile_device']['general']
+                'UDID': deviceDetails['computer']['general']['udid'] ?? 'N/A',
+                'Model Identifier': deviceDetails['computer']['hardware']
                         ['model_identifier'] ??
+                    'N/A',
+              },
+            ),
+            Section(
+              title: 'User',
+              items: {
+                'Username': deviceDetails['computer']['location']['username']
+                        .toString() ??
+                    'N/A',
+                'Name': deviceDetails['computer']['location']['realname']
+                        .toString() ?? 'N/A',
+                'E-Mailadress': deviceDetails['computer']['location']
+                        ['email_address'] ??
                     'N/A',
               },
             ),
             Section(
               title: 'Network',
               items: {
-                'IP': deviceDetails['mobile_device']['general']['ip_address'] ??
-                    'N/A',
-                'Wifi Mac': deviceDetails['mobile_device']['general']
-                        ['wifi_mac_address'] ??
-                    'N/A',
-                'Bluetooth Mac': deviceDetails['mobile_device']['general']
-                        ['bluetooth_mac_address'] ??
+                'IP':
+                    deviceDetails['computer']['general']['ip_address'] ?? 'N/A',
+                'Mac': deviceDetails['computer']['general']
+                        ['mac_address'] ??
                     'N/A',
               },
             ),
             Section(
               title: 'OS',
               items: {
-                'OS Type': deviceDetails['mobile_device']['general']
-                        ['os_type'] ??
-                    'N/A',
-                'OS Version': deviceDetails['mobile_device']['general']
-                        ['os_version'] ??
-                    'N/A',
-                'OS Build': deviceDetails['mobile_device']['general']
-                        ['os_build'] ??
-                    'N/A',
+                'OS Type':
+                    deviceDetails['computer']['hardware']['os_name'] ?? 'N/A',
+                'OS Version':
+                    deviceDetails['computer']['hardware']['os_version'] ?? 'N/A',
+                'OS Build':
+                    deviceDetails['computer']['hardware']['os_build'] ?? 'N/A',
               },
             ),
             Section(
               title: 'Security',
               items: {
-                'Supervised?': (deviceDetails['mobile_device']['general']
+                'Supervised?': (deviceDetails['computer']['general']
                             ['supervised'] ??
                         false)
                     ? 'Yes'
                     : 'No',
-                'Data Protection?': (deviceDetails['mobile_device']['security']
-                            ['data_protection'] ??
+                'Reovery Lock enabled?': (deviceDetails['computer']['security']
+                            ['recovery_lock_enabled'] ??
                         false)
                     ? 'Yes'
                     : 'No',
-                'Passcode Present?': (deviceDetails['mobile_device']['security']
-                            ['passcode_present'] ??
+                'Activation lock enabled?': (deviceDetails['computer']['security']
+                            ['activation_lock'] ??
                         false)
                     ? 'Yes'
                     : 'No',
-                'Passcode Compliant?': (deviceDetails['mobile_device']
-                            ['security']['passcode_compliant'] ??
+                'Firewall enabled?': (deviceDetails['computer']['security']
+                            ['firewall_enabled'] ??
                         false)
                     ? 'Yes'
                     : 'No',
-                'Jailbreak Detected?': deviceDetails['mobile_device']
-                        ['security']['jailbreak_detected'] ??
+                'Gatekeeper status?': deviceDetails['computer']['hardware']
+                        ['gatekeeper_status'] ??
                     'N/A',
               },
             ),
@@ -110,7 +118,7 @@ class ComputerDetailScreen extends StatelessWidget {
               ),
               onPressed: () async {
                 await sendMobileDeviceCommand("DeviceLock",
-                    deviceDetails['mobile_device']['general']['id'].toString());
+                    deviceDetails['computer']['general']['id'].toString());
               },
               child: Text('Lock Device'),
             ),
@@ -122,10 +130,8 @@ class ComputerDetailScreen extends StatelessWidget {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
-                  await sendMobileDeviceCommand(
-                      "RestartDevice",
-                      deviceDetails['mobile_device']['general']['id']
-                          .toString());
+                  await sendMobileDeviceCommand("RestartDevice",
+                      deviceDetails['computer']['general']['id'].toString());
                 },
                 child: Text('Restart Device'),
               ),
@@ -138,10 +144,8 @@ class ComputerDetailScreen extends StatelessWidget {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
-                  await sendMobileDeviceCommand(
-                      "UpdateInventory",
-                      deviceDetails['mobile_device']['general']['id']
-                          .toString());
+                  await sendMobileDeviceCommand("UpdateInventory",
+                      deviceDetails['computer']['general']['id'].toString());
                 },
                 child: Text('Update Inventory'),
               ),
@@ -178,8 +182,7 @@ class ComputerDetailScreen extends StatelessWidget {
                   if (confirmed == true) {
                     await sendMobileDeviceCommand(
                       "EraseDevice",
-                      deviceDetails['mobile_device']['general']['id']
-                          .toString(),
+                      deviceDetails['computer']['general']['id'].toString(),
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Erase Device command sent.')),

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/settings.dart';
 import 'screens/devicedetail.dart';
 import 'screens/computerdetail.dart';
+import 'package:intl/intl.dart';
 
 void main() => runApp(JamfProApp());
 
@@ -74,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (tokenResponse.statusCode == 200) {
-        print(tokenResponse.body.toString());
         final tokenData = json.decode(tokenResponse.body);
         authToken = tokenData['token'];
         prefs.setString('authToken', authToken.toString());
@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Fetch computers
         final computerResponse = await http.get(
-          Uri.parse('$url/JSSResource/computers'),
+          Uri.parse('$url/JSSResource/computers/subset/basic'),
           headers: {
             'Authorization': 'Bearer $authToken',
             'Accept': 'application/json',
@@ -106,6 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
           final computerData = json.decode(computerResponse.body);
           final computers = (computerData['computers'] as List).toList()
             ..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
+            print(devices);
 
           Navigator.pushReplacement(
             context,
@@ -188,6 +189,9 @@ class DeviceListScreen extends StatefulWidget {
 
 class _DeviceListScreenState extends State<DeviceListScreen> {
   String searchQuery = '';
+  bool showOfflineComputers = false;
+  int offlineDuration = 30; // Default value
+
 
   // Gemeinsame Methode für API-Aufrufe
   Future<Map<String, dynamic>?> _fetchDeviceDetails(
@@ -207,7 +211,6 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
           'Accept': 'application/json',
         },
       );
-      print(response.body.toString());
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
@@ -240,16 +243,59 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     }
   }
 
+    @override
+  void initState() {
+    super.initState();
+    _loadOfflineDuration();
+  }
+
+  // Async method to load offline duration
+  Future<void> _loadOfflineDuration() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      offlineDuration = prefs.getInt('offline_duration') ?? 30;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredDevices = widget.devices.where((device) {
       final name = device['name']?.toLowerCase() ?? '';
-      return name.contains(searchQuery.toLowerCase());
+      final isComputer = !widget.isMobile;
+      bool offlineSystem = false;
+
+      // If it's a computer, check if it's offline
+      if (isComputer) {
+        final reportDateUtcRaw = device['report_date_utc'];
+        final reportDateUtc = DateTime.parse(reportDateUtcRaw ?? '');
+        final nowUtc = DateTime.now().toUtc();
+        final diffInMinutes = nowUtc.difference(reportDateUtc).inMinutes;
+        offlineSystem = diffInMinutes > offlineDuration; //offline more than 30 minutes
+      }
+
+      // Filter based on search query and offline status for computers
+      return name.contains(searchQuery.toLowerCase()) &&
+          (!isComputer || !offlineSystem || showOfflineComputers);
     }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isMobile ? 'Mobile Devices' : 'Computers'),
+        actions: widget.isMobile
+            ? []
+            : [
+                // Add a filter button for toggling the offline filter
+                IconButton(
+                  icon: Icon(showOfflineComputers
+                      ? Icons.visibility_off
+                      : Icons.visibility),
+                  onPressed: () {
+                    setState(() {
+                      showOfflineComputers = !showOfflineComputers;
+                    });
+                  },
+                ),
+              ],
       ),
       body: Column(
         children: [
@@ -273,17 +319,39 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
               itemCount: filteredDevices.length,
               itemBuilder: (context, index) {
                 final device = filteredDevices[index];
-                final isSupervised = device['supervised'] == true;
+                final isSupervised = (device['supervised'] == true || device['managed'] == true);
+                final username = device['username'];
+                final lastcheckindate = device['report_date_utc'];
+                bool offline = false;
+
+                if(!widget.isMobile)
+                {
+                  final reportDateUtcRaw = device['report_date_utc'];
+                  final reportDateUtc = DateTime.parse(reportDateUtcRaw ?? '');
+                  final nowUtc = DateTime.now().toUtc();
+                  final diffInMinutes = nowUtc.difference(reportDateUtc).inMinutes;
+                  offline = diffInMinutes > offlineDuration; // Mark as offline if more than 30 minutes
+                }
+
                 return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor:
-                        isSupervised ? Colors.lightGreen : Colors.redAccent,
-                    child: Text(isSupervised ? 'C' : 'B',
-                        style: TextStyle(color: Colors.white)),
-                  ),
+                leading: Icon(
+                  widget.isMobile
+                      ? Icons.phone_android // Immer Handy-Icon für mobile Geräte
+                      : Icons.computer,     // Computer-Icon für Computer
+                  color: widget.isMobile
+                      ? Colors.lightGreen // Immer grün für mobile Geräte
+                      : (offline ? Colors.blueGrey : Colors.lightGreen), // Grau oder grün für Computer
+                ),
                   title: Text(device['name'] ?? 'Unknown Device'),
-                  subtitle: Text(
-                      '${isSupervised ? 'COBO' : 'BYOD'} - Model: ${device['model'] ?? 'N/A'}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if(!widget.isMobile) Text('Last Checkin: ' + DateFormat('HH:mm, dd.MM.yyyy').format(DateTime.parse(lastcheckindate).toLocal())),
+                      if (username != null && username.isNotEmpty) Text(username, style: TextStyle(color: Colors.black, fontWeight: FontWeight.w400)) else Text('-', style: TextStyle(color: const Color.fromARGB(255, 153, 148, 148))),
+                      Text('Model: ${device['model']}'),
+                      if (isSupervised) Text('COBO', style: TextStyle(color: const Color.fromARGB(255, 66, 143, 43))) else Text('BYOD', style: TextStyle(color: const Color.fromARGB(255, 236, 99, 99))),
+                    ],
+                  ),
                   onTap: () => _showDeviceDetails(device['id'].toString()),
                 );
               },
