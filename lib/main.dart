@@ -496,7 +496,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   ListTile(
                     leading: Icon(Icons.update),
-                    title: Text('Server'),
+                    title: Text('Updates'),
                     onTap: () {
                       Navigator.push(
                         context,
