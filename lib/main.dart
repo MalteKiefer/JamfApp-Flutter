@@ -295,21 +295,28 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   Widget build(BuildContext context) {
     final filteredDevices = widget.devices.where((device) {
       final name = device['name']?.toLowerCase() ?? '';
+      final username =
+          device['username']?.toLowerCase() ?? ''; // Benutzername hinzufügen
       final isComputer = !widget.isMobile;
       bool offlineSystem = false;
 
-      // If it's a computer, check if it's offline
+      // Wenn es ein Computer ist, prüfe, ob er offline ist
       if (isComputer) {
         final reportDateUtcRaw = device['report_date_utc'];
-        final reportDateUtc = DateTime.parse(reportDateUtcRaw ?? '');
-        final nowUtc = DateTime.now().toUtc();
-        final diffInMinutes = nowUtc.difference(reportDateUtc).inMinutes;
-        offlineSystem =
-            diffInMinutes > offlineDuration; //offline more than 30 minutes
+        final reportDateUtc = DateTime.tryParse(reportDateUtcRaw ?? '');
+        if (reportDateUtc != null) {
+          final nowUtc = DateTime.now().toUtc();
+          final diffInMinutes = nowUtc.difference(reportDateUtc).inMinutes;
+          offlineSystem =
+              diffInMinutes > offlineDuration; // offline mehr als 30 Minuten
+        }
       }
 
-      // Filter based on search query and offline status for computers
-      return name.contains(searchQuery.toLowerCase()) &&
+      // Filter basierend auf Suchanfrage, Name, Username und Offline-Status
+      final matchesSearch = name.contains(searchQuery.toLowerCase()) ||
+          username.contains(searchQuery.toLowerCase());
+
+      return matchesSearch &&
           (!isComputer || !offlineSystem || showOfflineComputers);
     }).toList();
 
