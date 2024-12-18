@@ -71,72 +71,68 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (_computerGroups == null)
-                      Center(
-                          child:
-                              CircularProgressIndicator()) // Ladeindikator anzeigen
-                    else
-                      DropdownButton<dynamic>(
-                        value: _selectedGroup,
-                        hint: Text('Select a group'),
-                        items: _computerGroups!.map((group) {
+                    DropdownButton<dynamic>(
+                      value: _selectedGroup,
+                      hint: Text('Select a group'),
+                      items: _computerGroups!.map((group) {
+                        return DropdownMenuItem(
+                          value: group,
+                          child: Text(group['name']), // Name anzeigen
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGroup = value;
+                        });
+                        print('Selected ID: ${value['id']}'); // ID ausgeben
+                      },
+                    ),
+                    DropdownButton<String>(
+                      value: _selectedVersionType,
+                      hint: Text('Select version type'),
+                      items: versionTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type['value'],
+                          child: Text(type['text']!), // Text anzeigen
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVersionType = value;
+                          // Wenn ein anderer Wert als "SPECIFIC_VERSION" gewählt wird, resetten wir die spezifische Version
+                          if (value != "SPECIFIC_VERSION") {
+                            _selectedSpecificVersion = null;
+                          }
+                        });
+                        print(
+                            'Selected Version Type: $value'); // Versionstyp ausgeben
+                      },
+                    ),
+                    if (_selectedVersionType == "SPECIFIC_VERSION") ...[
+                      SizedBox(height: 20),
+                      DropdownButton<String>(
+                        value: _selectedSpecificVersion,
+                        hint: Text('Select version'),
+                        items: specificVersions.map((version) {
                           return DropdownMenuItem(
-                            value: group,
-                            child: Text(group['name']), // Name anzeigen
+                            value: version,
+                            child: Text(version), // Version anzeigen
                           );
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedGroup = value;
+                            _selectedSpecificVersion = value;
                           });
-                          print('Selected ID: ${value['id']}'); // ID ausgeben
+                          print(
+                              'Selected Specific Version: $value'); // Spezifische Version ausgeben
                         },
                       ),
+                    ],
                   ],
                 ),
               ),
             ),
             SizedBox(height: 20),
-            DropdownButton<String>(
-              value: _selectedVersionType,
-              hint: Text('Select version type'),
-              items: versionTypes.map((type) {
-                return DropdownMenuItem(
-                  value: type['value'],
-                  child: Text(type['text']!), // Text anzeigen
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedVersionType = value;
-                  // Wenn ein anderer Wert als "SPECIFIC_VERSION" gewählt wird, resetten wir die spezifische Version
-                  if (value != "SPECIFIC_VERSION") {
-                    _selectedSpecificVersion = null;
-                  }
-                });
-                print('Selected Version Type: $value'); // Versionstyp ausgeben
-              },
-            ),
-            if (_selectedVersionType == "SPECIFIC_VERSION") ...[
-              SizedBox(height: 20),
-              DropdownButton<String>(
-                value: _selectedSpecificVersion,
-                hint: Text('Select version'),
-                items: specificVersions.map((version) {
-                  return DropdownMenuItem(
-                    value: version,
-                    child: Text(version), // Version anzeigen
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedSpecificVersion = value;
-                  });
-                  print(
-                      'Selected Specific Version: $value'); // Spezifische Version ausgeben
-                },
-              ),
-            ],
           ],
         ),
       ),
