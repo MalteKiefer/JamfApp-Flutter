@@ -137,6 +137,7 @@ Future<Map<String, dynamic>?> fetchComputerGroups() async {
         'Accept': 'application/json',
       },
     );
+    print(response.body);
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {

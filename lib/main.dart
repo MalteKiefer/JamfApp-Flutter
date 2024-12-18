@@ -111,7 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
           final computerData = json.decode(computerResponse.body);
           final computers = (computerData['computers'] as List).toList()
             ..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
-          print(devices);
 
           Navigator.pushReplacement(
             context,
