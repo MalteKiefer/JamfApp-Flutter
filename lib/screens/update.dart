@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import '../helper/func.dart';
 
 class UpdatesScreen extends StatefulWidget {
+  final List<dynamic> computerGroups; // Gruppen werden übergeben
+
+  UpdatesScreen({required this.computerGroups});
+
   @override
   _UpdatesScreenState createState() => _UpdatesScreenState();
 }
 
 class _UpdatesScreenState extends State<UpdatesScreen> {
-  List<dynamic>? _computerGroups;
+  late List<dynamic> _computerGroups;
   dynamic _selectedGroup;
   String? _selectedVersionType; // Ausgewählter Versionstyp
   String? _selectedSpecificVersion; // Ausgewählte spezifische Version
@@ -43,12 +47,8 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadGroups();
-  }
-
-  // Lädt die gespeicherten Einstellungen
-  Future<void> _loadGroups() async {
-    final _computerGroups = fetchComputerGroups();
+    _computerGroups =
+        widget.computerGroups; // Übergebene Gruppen initialisieren
   }
 
   @override
@@ -71,22 +71,27 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    DropdownButton<dynamic>(
-                      value: _selectedGroup,
-                      hint: Text('Select a group'),
-                      items: _computerGroups!.map((group) {
-                        return DropdownMenuItem(
-                          value: group,
-                          child: Text(group['name']), // Name anzeigen
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedGroup = value;
-                        });
-                        print('Selected ID: ${value['id']}'); // ID ausgeben
-                      },
-                    ),
+                    if (_computerGroups.isEmpty)
+                      Center(
+                          child: Text(
+                              'No groups available')) // Hinweis, wenn keine Gruppen vorhanden sind
+                    else
+                      DropdownButton<dynamic>(
+                        value: _selectedGroup,
+                        hint: Text('Select a group'),
+                        items: _computerGroups.map((group) {
+                          return DropdownMenuItem(
+                            value: group,
+                            child: Text(group['name']), // Name anzeigen
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedGroup = value;
+                          });
+                          print('Selected ID: ${value['id']}'); // ID ausgeben
+                        },
+                      ),
                     DropdownButton<String>(
                       value: _selectedVersionType,
                       hint: Text('Select version type'),

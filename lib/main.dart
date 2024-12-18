@@ -30,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _urlController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  List groups = [];
   String? authToken;
 
   @override
@@ -81,6 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
         authToken = tokenData['token'];
         prefs.setString('authToken', authToken.toString());
 
+        await fetchComputerGroups();
+
         // Fetch mobile devices
         final mobileResponse = await http.get(
           Uri.parse('$url/JSSResource/mobiledevices'),
@@ -114,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  HomeScreen(devices: devices, computers: computers),
+                  HomeScreen(devices: devices, computers: computers, computergroups: groups),
             ),
           );
         } else {
@@ -434,8 +437,9 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 class HomeScreen extends StatelessWidget {
   final List devices;
   final List computers;
+  final List computergroups;
 
-  HomeScreen({required this.devices, required this.computers});
+  HomeScreen({required this.devices, required this.computers, required this.computergroups});
 
   @override
   Widget build(BuildContext context) {
@@ -502,7 +506,7 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => UpdatesScreen()),
+                            builder: (context) => UpdatesScreen(groups: computergroups),
                       );
                     },
                   ),
