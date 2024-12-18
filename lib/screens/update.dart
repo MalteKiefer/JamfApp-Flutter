@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../helper/func.dart';
+import 'package:intl/intl.dart'; // Für die Datumsauswahl
 
 class UpdatesScreen extends StatefulWidget {
   final List<dynamic> computerGroups; // Gruppen werden übergeben
@@ -15,6 +15,9 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
   dynamic _selectedGroup;
   String? _selectedVersionType; // Ausgewählter Versionstyp
   String? _selectedSpecificVersion; // Ausgewählte spezifische Version
+  String? _selectedActionType; // Ausgewählter Aktionstyp
+  TextEditingController _intInputController = TextEditingController();
+  TextEditingController _dateInputController = TextEditingController();
 
   // Liste der spezifischen Versionen
   final List<String> specificVersions = [
@@ -42,6 +45,23 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
     {"text": "Latest major version", "value": "LATEST_MAJOR"},
     {"text": "Latest minor version", "value": "LATEST_MINOR"},
     {"text": "Specific version", "value": "SPECIFIC_VERSION"},
+  ];
+
+  final List<Map<String, String>> actionTypes = [
+    {"text": "Download only", "value": "DOWNLOAD_ONLY"},
+    {"text": "Download and install", "value": "DOWNLOAD_INSTALL"},
+    {
+      "text": "Download and schedule to install",
+      "value": "DOWNLOAD_INSTALL_ALLOW_DEFERRAL"
+    },
+    {
+      "text": "Download, install, and allow deferral",
+      "value": "DOWNLOAD_INSTALL_SCHEDULE"
+    },
+    {
+      "text": "Download, install, and restart",
+      "value": "DOWNLOAD_INSTALL_RESTART"
+    },
   ];
 
   @override
@@ -77,6 +97,7 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                               'No groups available')) // Hinweis, wenn keine Gruppen vorhanden sind
                     else
                       DropdownButton<dynamic>(
+                        isExpanded: true,
                         value: _selectedGroup,
                         hint: Text('Select a group'),
                         items: _computerGroups.map((group) {
@@ -92,7 +113,25 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                           print('Selected ID: ${value['id']}'); // ID ausgeben
                         },
                       ),
-                    DropdownButton<String>(
+                    DropdownButton<dynamic>(
+                      isExpanded: true,
+                      value: _selectedActionType,
+                      hint: Text('Select update action'),
+                      items: actionTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type['value'],
+                          child: Text(type['text']!), // Text anzeigen
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedActionType = value;
+                        });
+                        print('Selected Action Type: $value');
+                      },
+                    ),
+                    DropdownButton<dynamic>(
+                      isExpanded: true,
                       value: _selectedVersionType,
                       hint: Text('Select version type'),
                       items: versionTypes.map((type) {
@@ -104,18 +143,17 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                       onChanged: (value) {
                         setState(() {
                           _selectedVersionType = value;
-                          // Wenn ein anderer Wert als "SPECIFIC_VERSION" gewählt wird, resetten wir die spezifische Version
                           if (value != "SPECIFIC_VERSION") {
                             _selectedSpecificVersion = null;
                           }
                         });
-                        print(
-                            'Selected Version Type: $value'); // Versionstyp ausgeben
+                        print('Selected Version Type: $value');
                       },
                     ),
                     if (_selectedVersionType == "SPECIFIC_VERSION") ...[
                       SizedBox(height: 20),
-                      DropdownButton<String>(
+                      DropdownButton<dynamic>(
+                        isExpanded: true,
                         value: _selectedSpecificVersion,
                         hint: Text('Select version'),
                         items: specificVersions.map((version) {
@@ -128,8 +166,48 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                           setState(() {
                             _selectedSpecificVersion = value;
                           });
-                          print(
-                              'Selected Specific Version: $value'); // Spezifische Version ausgeben
+                          print('Selected Specific Version: $value');
+                        },
+                      ),
+                    ],
+                    if (_selectedActionType ==
+                        "DOWNLOAD_INSTALL_ALLOW_DEFERRAL") ...[
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _intInputController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Deferral',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                    ],
+                    if (_selectedActionType == "DOWNLOAD_INSTALL_SCHEDULE") ...[
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _dateInputController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'Choose install date',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2101),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              _dateInputController.text =
+                                  DateFormat('yyyy-MM-dd').format(pickedDate);
+                            });
+                          }
                         },
                       ),
                     ],
