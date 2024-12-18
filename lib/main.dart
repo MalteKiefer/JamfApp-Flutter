@@ -116,8 +116,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  HomeScreen(devices: devices, computers: computers, computergroups: groups),
+              builder: (context) => HomeScreen(
+                  devices: devices,
+                  computers: computers,
+                  computergroups: groups),
             ),
           );
         } else {
@@ -439,7 +441,10 @@ class HomeScreen extends StatelessWidget {
   final List computers;
   final List computergroups;
 
-  HomeScreen({required this.devices, required this.computers, required this.computergroups});
+  HomeScreen(
+      {required this.devices,
+      required this.computers,
+      required this.computergroups});
 
   @override
   Widget build(BuildContext context) {
@@ -504,10 +509,11 @@ class HomeScreen extends StatelessWidget {
                     title: Text('Software-Updates'),
                     onTap: () {
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => UpdatesScreen(groups: computergroups),
-                      );
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                UpdatesScreen(computerGroups: computergroups),
+                          ));
                     },
                   ),
                 ],
