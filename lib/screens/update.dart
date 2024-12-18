@@ -162,7 +162,7 @@ class UpdatesScreenState extends State<UpdatesScreen> {
                         controller: _dateInputController,
                         readOnly: true,
                         decoration: InputDecoration(
-                          labelText: 'Choose install date',
+                          labelText: 'Choose install date and time',
                           border: OutlineInputBorder(),
                         ),
                         onTap: () async {
@@ -173,10 +173,24 @@ class UpdatesScreenState extends State<UpdatesScreen> {
                             lastDate: DateTime(2101),
                           );
                           if (pickedDate != null) {
-                            setState(() {
-                              _dateInputController.text =
-                                  DateFormat('yyyy-MM-dd').format(pickedDate);
-                            });
+                            TimeOfDay? pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (pickedTime != null) {
+                              final DateTime combinedDateTime = DateTime(
+                                pickedDate.year,
+                                pickedDate.month,
+                                pickedDate.day,
+                                pickedTime.hour,
+                                pickedTime.minute,
+                              );
+                              setState(() {
+                                _dateInputController.text =
+                                    DateFormat('yyyy-MM-dd HH:mm')
+                                        .format(combinedDateTime);
+                              });
+                            }
                           }
                         },
                       ),
@@ -245,13 +259,13 @@ class UpdatesScreenState extends State<UpdatesScreen> {
                     Text(
                         'Action Type: ${_selectedActionType != null ? actionTypes.firstWhere((type) => type['value'] == _selectedActionType)['text'] : 'None'}'),
                     Text(
+                        'Deferral: ${_intInputController.text.isNotEmpty ? _intInputController.text : 'None'}'),
+                    Text(
+                        'Install Date and Time: ${_dateInputController.text.isNotEmpty ? _dateInputController.text : 'None'}'),
+                    Text(
                         'Version Type: ${_selectedVersionType != null ? versionTypes.firstWhere((type) => type['value'] == _selectedVersionType)['text'] : 'None'}'),
-                    if (_selectedSpecificVersion != null)
-                      Text('Specific Version: $_selectedSpecificVersion'),
-                    if (_intInputController.text.isNotEmpty)
-                      Text('Deferral: ${_intInputController.text}'),
-                    if (_dateInputController.text.isNotEmpty)
-                      Text('Scheduled Date: ${_dateInputController.text}'),
+                    Text(
+                        'Specific Version: ${_selectedSpecificVersion ?? 'None'}'),
                   ],
                 ),
                 isActive: _currentStep >= 3,
