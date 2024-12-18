@@ -52,11 +52,11 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
     {"text": "Download and install", "value": "DOWNLOAD_INSTALL"},
     {
       "text": "Download and schedule to install",
-      "value": "DOWNLOAD_INSTALL_ALLOW_DEFERRAL"
+      "value": "DOWNLOAD_INSTALL_SCHEDULE"
     },
     {
       "text": "Download, install, and allow deferral",
-      "value": "DOWNLOAD_INSTALL_SCHEDULE"
+      "value": "DOWNLOAD_INSTALL_ALLOW_DEFERRAL"
     },
     {
       "text": "Download, install, and restart",
@@ -83,7 +83,10 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Card für die Einstellungen
+            Text(
+              'Computer updates',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             Card(
               elevation: 4,
               child: Padding(
@@ -130,46 +133,6 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                         print('Selected Action Type: $value');
                       },
                     ),
-                    DropdownButton<dynamic>(
-                      isExpanded: true,
-                      value: _selectedVersionType,
-                      hint: Text('Select version type'),
-                      items: versionTypes.map((type) {
-                        return DropdownMenuItem(
-                          value: type['value'],
-                          child: Text(type['text']!), // Text anzeigen
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedVersionType = value;
-                          if (value != "SPECIFIC_VERSION") {
-                            _selectedSpecificVersion = null;
-                          }
-                        });
-                        print('Selected Version Type: $value');
-                      },
-                    ),
-                    if (_selectedVersionType == "SPECIFIC_VERSION") ...[
-                      SizedBox(height: 20),
-                      DropdownButton<dynamic>(
-                        isExpanded: true,
-                        value: _selectedSpecificVersion,
-                        hint: Text('Select version'),
-                        items: specificVersions.map((version) {
-                          return DropdownMenuItem(
-                            value: version,
-                            child: Text(version), // Version anzeigen
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSpecificVersion = value;
-                          });
-                          print('Selected Specific Version: $value');
-                        },
-                      ),
-                    ],
                     if (_selectedActionType ==
                         "DOWNLOAD_INSTALL_ALLOW_DEFERRAL") ...[
                       SizedBox(height: 20),
@@ -208,6 +171,46 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                                   DateFormat('yyyy-MM-dd').format(pickedDate);
                             });
                           }
+                        },
+                      ),
+                    ],
+                    DropdownButton<dynamic>(
+                      isExpanded: true,
+                      value: _selectedVersionType,
+                      hint: Text('Select version type'),
+                      items: versionTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type['value'],
+                          child: Text(type['text']!), // Text anzeigen
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVersionType = value;
+                          if (value != "SPECIFIC_VERSION") {
+                            _selectedSpecificVersion = null;
+                          }
+                        });
+                        print('Selected Version Type: $value');
+                      },
+                    ),
+                    if (_selectedVersionType == "SPECIFIC_VERSION") ...[
+                      SizedBox(height: 20),
+                      DropdownButton<dynamic>(
+                        isExpanded: true,
+                        value: _selectedSpecificVersion,
+                        hint: Text('Select version'),
+                        items: specificVersions.map((version) {
+                          return DropdownMenuItem(
+                            value: version,
+                            child: Text(version), // Version anzeigen
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSpecificVersion = value;
+                          });
+                          print('Selected Specific Version: $value');
                         },
                       ),
                     ],
