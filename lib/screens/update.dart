@@ -13,12 +13,13 @@ class UpdatesScreen extends StatefulWidget {
 class UpdatesScreenState extends State<UpdatesScreen> {
   late List<dynamic> _computerGroups;
   dynamic _selectedGroup;
-  String? _selectedVersionType;
-  String? _selectedSpecificVersion;
-  String? _selectedActionType;
+  String? _selectedVersionType; // Ausgewählter Versionstyp
+  String? _selectedSpecificVersion; // Ausgewählte spezifische Version
+  String? _selectedActionType; // Ausgewählter Aktionstyp
   TextEditingController _intInputController = TextEditingController();
   TextEditingController _dateInputController = TextEditingController();
 
+  // Liste der spezifischen Versionen
   final List<String> specificVersions = [
     "15.2",
     "15.1.1",
@@ -35,6 +36,7 @@ class UpdatesScreenState extends State<UpdatesScreen> {
     "11.7.10"
   ];
 
+  // Liste der Versionstypen
   final List<Map<String, String>> versionTypes = [
     {
       "text": "Latest version based on device eligibility",
@@ -67,7 +69,8 @@ class UpdatesScreenState extends State<UpdatesScreen> {
   @override
   void initState() {
     super.initState();
-    _computerGroups = widget.computerGroups;
+    _computerGroups =
+        widget.computerGroups; // Übergebene Gruppen initialisieren
   }
 
   @override
@@ -75,164 +78,189 @@ class UpdatesScreenState extends State<UpdatesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Software Updates'),
+        actions: [],
       ),
-      body: Stepper(
-        currentStep: _currentStep,
-        onStepContinue: () {
-          if (_currentStep < 4) {
-            setState(() {
-              _currentStep++;
-            });
-          }
-        },
-        onStepCancel: () {
-          if (_currentStep > 0) {
-            setState(() {
-              _currentStep--;
-            });
-          }
-        },
-        steps: [
-          Step(
-            title: Text('Select Group'),
-            content: DropdownButton<dynamic>(
-              isExpanded: true,
-              value: _selectedGroup,
-              hint: Text('Select a group'),
-              items: _computerGroups.map((group) {
-                return DropdownMenuItem(
-                  value: group,
-                  child: Text(group['name']),
-                );
-              }).toList(),
-              onChanged: (value) {
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Card(
+          elevation: 4,
+          child: Stepper(
+            currentStep: _currentStep,
+            onStepContinue: () {
+              if (_currentStep < 3) {
                 setState(() {
-                  _selectedGroup = value;
+                  _currentStep++;
                 });
-              },
-            ),
-            isActive: _currentStep >= 0,
-          ),
-          Step(
-            title: Text('Select Update Action'),
-            content: Column(
-              children: [
-                DropdownButton<dynamic>(
+              }
+            },
+            onStepCancel: () {
+              if (_currentStep > 0) {
+                setState(() {
+                  _currentStep--;
+                });
+              }
+            },
+            steps: [
+              Step(
+                title: Text('Select Group'),
+                content: DropdownButton<dynamic>(
                   isExpanded: true,
-                  value: _selectedActionType,
-                  hint: Text('Select update action'),
-                  items: actionTypes.map((type) {
+                  value: _selectedGroup,
+                  hint: Text('Select a group'),
+                  items: _computerGroups.map((group) {
                     return DropdownMenuItem(
-                      value: type['value'],
-                      child: Text(type['text']!),
+                      value: group,
+                      child: Text(group['name']), // Name anzeigen
                     );
                   }).toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedActionType = value;
+                      _selectedGroup = value;
                     });
                   },
                 ),
-                if (_selectedActionType == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL")
-                  TextField(
-                    controller: _intInputController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Deferral',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                if (_selectedActionType == "DOWNLOAD_INSTALL_SCHEDULE")
-                  TextField(
-                    controller: _dateInputController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: 'Choose install date',
-                      border: OutlineInputBorder(),
-                    ),
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) {
+                isActive: _currentStep >= 0,
+                state:
+                    _currentStep > 0 ? StepState.complete : StepState.indexed,
+              ),
+              Step(
+                title: Text('Select Action Type'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DropdownButton<dynamic>(
+                      isExpanded: true,
+                      value: _selectedActionType,
+                      hint: Text('Select update action'),
+                      items: actionTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type['value'],
+                          child: Text(type['text']!),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
                         setState(() {
-                          _dateInputController.text =
-                              DateFormat('yyyy-MM-dd').format(pickedDate);
+                          _selectedActionType = value;
                         });
-                      }
-                    },
-                  ),
-              ],
-            ),
-            isActive: _currentStep >= 1,
-          ),
-          Step(
-            title: Text('Select Version Type'),
-            content: Column(
-              children: [
-                DropdownButton<dynamic>(
-                  isExpanded: true,
-                  value: _selectedVersionType,
-                  hint: Text('Select version type'),
-                  items: versionTypes.map((type) {
-                    return DropdownMenuItem(
-                      value: type['value'],
-                      child: Text(type['text']!),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVersionType = value;
-                      if (value != "SPECIFIC_VERSION") {
-                        _selectedSpecificVersion = null;
-                      }
-                    });
-                  },
+                      },
+                    ),
+                    if (_selectedActionType ==
+                        "DOWNLOAD_INSTALL_ALLOW_DEFERRAL") ...[
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _intInputController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Deferral',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                    if (_selectedActionType == "DOWNLOAD_INSTALL_SCHEDULE") ...[
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _dateInputController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'Choose install date',
+                          border: OutlineInputBorder(),
+                        ),
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2101),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              _dateInputController.text =
+                                  DateFormat('yyyy-MM-dd').format(pickedDate);
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ],
                 ),
-                if (_selectedVersionType == "SPECIFIC_VERSION")
-                  DropdownButton<dynamic>(
-                    isExpanded: true,
-                    value: _selectedSpecificVersion,
-                    hint: Text('Select version'),
-                    items: specificVersions.map((version) {
-                      return DropdownMenuItem(
-                        value: version,
-                        child: Text(version),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedSpecificVersion = value;
-                      });
-                    },
-                  ),
-              ],
-            ),
-            isActive: _currentStep >= 2,
+                isActive: _currentStep >= 1,
+                state:
+                    _currentStep > 1 ? StepState.complete : StepState.indexed,
+              ),
+              Step(
+                title: Text('Select Version Type'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DropdownButton<dynamic>(
+                      isExpanded: true,
+                      value: _selectedVersionType,
+                      hint: Text('Select version type'),
+                      items: versionTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type['value'],
+                          child: Text(type['text']!),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVersionType = value;
+                          if (value != "SPECIFIC_VERSION") {
+                            _selectedSpecificVersion = null;
+                          }
+                        });
+                      },
+                    ),
+                    if (_selectedVersionType == "SPECIFIC_VERSION") ...[
+                      SizedBox(height: 20),
+                      DropdownButton<dynamic>(
+                        isExpanded: true,
+                        value: _selectedSpecificVersion,
+                        hint: Text('Select version'),
+                        items: specificVersions.map((version) {
+                          return DropdownMenuItem(
+                            value: version,
+                            child: Text(version),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSpecificVersion = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+                isActive: _currentStep >= 2,
+                state:
+                    _currentStep > 2 ? StepState.complete : StepState.indexed,
+              ),
+              Step(
+                title: Text('Summary'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Group: ${_selectedGroup?['name'] ?? 'None'}'),
+                    Text(
+                        'Action Type: ${_selectedActionType != null ? actionTypes.firstWhere((type) => type['value'] == _selectedActionType)['text'] : 'None'}'),
+                    Text(
+                        'Version Type: ${_selectedVersionType != null ? versionTypes.firstWhere((type) => type['value'] == _selectedVersionType)['text'] : 'None'}'),
+                    if (_selectedSpecificVersion != null)
+                      Text('Specific Version: $_selectedSpecificVersion'),
+                    if (_intInputController.text.isNotEmpty)
+                      Text('Deferral: ${_intInputController.text}'),
+                    if (_dateInputController.text.isNotEmpty)
+                      Text('Scheduled Date: ${_dateInputController.text}'),
+                  ],
+                ),
+                isActive: _currentStep >= 3,
+                state:
+                    _currentStep == 3 ? StepState.complete : StepState.indexed,
+              ),
+            ],
           ),
-          Step(
-            title: Text('Review Selection'),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                    'Selected Group: ${_selectedGroup != null ? _selectedGroup['name'] : 'None'}'),
-                Text('Selected Action: $_selectedActionType'),
-                if (_selectedActionType == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL")
-                  Text('Deferral: ${_intInputController.text}'),
-                if (_selectedActionType == "DOWNLOAD_INSTALL_SCHEDULE")
-                  Text('Install Date: ${_dateInputController.text}'),
-                Text('Version Type: $_selectedVersionType'),
-                if (_selectedVersionType == "SPECIFIC_VERSION")
-                  Text('Specific Version: $_selectedSpecificVersion'),
-              ],
-            ),
-            isActive: _currentStep >= 3,
-          ),
-        ],
+        ),
       ),
     );
   }
