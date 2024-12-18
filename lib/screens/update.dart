@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Für die Datumsauswahl
 
-class UpdatesScreen extends StatefulWidget {
-  final List<dynamic> computerGroups; // Gruppen werden übergeben
+class UpdatesStepperScreen extends StatefulWidget {
+  final List<dynamic> computerGroups;
 
-  UpdatesScreen({required this.computerGroups});
+  UpdatesStepperScreen({required this.computerGroups});
 
   @override
-  _UpdatesScreenState createState() => _UpdatesScreenState();
+  _UpdatesStepperScreenState createState() => _UpdatesStepperScreenState();
 }
 
-class _UpdatesScreenState extends State<UpdatesScreen> {
+class _UpdatesStepperScreenState extends State<UpdatesStepperScreen> {
   late List<dynamic> _computerGroups;
   dynamic _selectedGroup;
-  String? _selectedVersionType; // Ausgewählter Versionstyp
-  String? _selectedSpecificVersion; // Ausgewählte spezifische Version
-  String? _selectedActionType; // Ausgewählter Aktionstyp
+  String? _selectedVersionType;
+  String? _selectedSpecificVersion;
+  String? _selectedActionType;
   TextEditingController _intInputController = TextEditingController();
   TextEditingController _dateInputController = TextEditingController();
 
-  // Liste der spezifischen Versionen
   final List<String> specificVersions = [
     "15.2",
     "15.1.1",
@@ -36,7 +35,6 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
     "11.7.10"
   ];
 
-  // Liste der Versionstypen
   final List<Map<String, String>> versionTypes = [
     {
       "text": "Latest version based on device eligibility",
@@ -64,11 +62,12 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
     },
   ];
 
+  int _currentStep = 0;
+
   @override
   void initState() {
     super.initState();
-    _computerGroups =
-        widget.computerGroups; // Übergebene Gruppen initialisieren
+    _computerGroups = widget.computerGroups;
   }
 
   @override
@@ -76,151 +75,164 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Software Updates'),
-        actions: [],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Computer updates',
-              style: Theme.of(context).textTheme.titleLarge,
+      body: Stepper(
+        currentStep: _currentStep,
+        onStepContinue: () {
+          if (_currentStep < 4) {
+            setState(() {
+              _currentStep++;
+            });
+          }
+        },
+        onStepCancel: () {
+          if (_currentStep > 0) {
+            setState(() {
+              _currentStep--;
+            });
+          }
+        },
+        steps: [
+          Step(
+            title: Text('Select Group'),
+            content: DropdownButton<dynamic>(
+              isExpanded: true,
+              value: _selectedGroup,
+              hint: Text('Select a group'),
+              items: _computerGroups.map((group) {
+                return DropdownMenuItem(
+                  value: group,
+                  child: Text(group['name']),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedGroup = value;
+                });
+              },
             ),
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_computerGroups.isEmpty)
-                      Center(
-                          child: Text(
-                              'No groups available')) // Hinweis, wenn keine Gruppen vorhanden sind
-                    else
-                      DropdownButton<dynamic>(
-                        isExpanded: true,
-                        value: _selectedGroup,
-                        hint: Text('Select a group'),
-                        items: _computerGroups.map((group) {
-                          return DropdownMenuItem(
-                            value: group,
-                            child: Text(group['name']), // Name anzeigen
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedGroup = value;
-                          });
-                          print('Selected ID: ${value['id']}'); // ID ausgeben
-                        },
-                      ),
-                    DropdownButton<dynamic>(
-                      isExpanded: true,
-                      value: _selectedActionType,
-                      hint: Text('Select update action'),
-                      items: actionTypes.map((type) {
-                        return DropdownMenuItem(
-                          value: type['value'],
-                          child: Text(type['text']!), // Text anzeigen
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedActionType = value;
-                        });
-                        print('Selected Action Type: $value');
-                      },
-                    ),
-                    if (_selectedActionType ==
-                        "DOWNLOAD_INSTALL_ALLOW_DEFERRAL") ...[
-                      SizedBox(height: 20),
-                      TextField(
-                        controller: _intInputController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Deferral',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                        ),
-                      ),
-                    ],
-                    if (_selectedActionType == "DOWNLOAD_INSTALL_SCHEDULE") ...[
-                      SizedBox(height: 20),
-                      TextField(
-                        controller: _dateInputController,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: 'Choose install date',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                        ),
-                        onTap: () async {
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime(2101),
-                          );
-                          if (pickedDate != null) {
-                            setState(() {
-                              _dateInputController.text =
-                                  DateFormat('yyyy-MM-dd').format(pickedDate);
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                    DropdownButton<dynamic>(
-                      isExpanded: true,
-                      value: _selectedVersionType,
-                      hint: Text('Select version type'),
-                      items: versionTypes.map((type) {
-                        return DropdownMenuItem(
-                          value: type['value'],
-                          child: Text(type['text']!), // Text anzeigen
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedVersionType = value;
-                          if (value != "SPECIFIC_VERSION") {
-                            _selectedSpecificVersion = null;
-                          }
-                        });
-                        print('Selected Version Type: $value');
-                      },
-                    ),
-                    if (_selectedVersionType == "SPECIFIC_VERSION") ...[
-                      SizedBox(height: 20),
-                      DropdownButton<dynamic>(
-                        isExpanded: true,
-                        value: _selectedSpecificVersion,
-                        hint: Text('Select version'),
-                        items: specificVersions.map((version) {
-                          return DropdownMenuItem(
-                            value: version,
-                            child: Text(version), // Version anzeigen
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSpecificVersion = value;
-                          });
-                          print('Selected Specific Version: $value');
-                        },
-                      ),
-                    ],
-                  ],
+            isActive: _currentStep >= 0,
+          ),
+          Step(
+            title: Text('Select Update Action'),
+            content: Column(
+              children: [
+                DropdownButton<dynamic>(
+                  isExpanded: true,
+                  value: _selectedActionType,
+                  hint: Text('Select update action'),
+                  items: actionTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type['value'],
+                      child: Text(type['text']!),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedActionType = value;
+                    });
+                  },
                 ),
-              ),
+                if (_selectedActionType == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL")
+                  TextField(
+                    controller: _intInputController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Deferral',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                if (_selectedActionType == "DOWNLOAD_INSTALL_SCHEDULE")
+                  TextField(
+                    controller: _dateInputController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Choose install date',
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          _dateInputController.text =
+                              DateFormat('yyyy-MM-dd').format(pickedDate);
+                        });
+                      }
+                    },
+                  ),
+              ],
             ),
-            SizedBox(height: 20),
-          ],
-        ),
+            isActive: _currentStep >= 1,
+          ),
+          Step(
+            title: Text('Select Version Type'),
+            content: Column(
+              children: [
+                DropdownButton<dynamic>(
+                  isExpanded: true,
+                  value: _selectedVersionType,
+                  hint: Text('Select version type'),
+                  items: versionTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type['value'],
+                      child: Text(type['text']!),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedVersionType = value;
+                      if (value != "SPECIFIC_VERSION") {
+                        _selectedSpecificVersion = null;
+                      }
+                    });
+                  },
+                ),
+                if (_selectedVersionType == "SPECIFIC_VERSION")
+                  DropdownButton<dynamic>(
+                    isExpanded: true,
+                    value: _selectedSpecificVersion,
+                    hint: Text('Select version'),
+                    items: specificVersions.map((version) {
+                      return DropdownMenuItem(
+                        value: version,
+                        child: Text(version),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedSpecificVersion = value;
+                      });
+                    },
+                  ),
+              ],
+            ),
+            isActive: _currentStep >= 2,
+          ),
+          Step(
+            title: Text('Review Selection'),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                    'Selected Group: ${_selectedGroup != null ? _selectedGroup['name'] : 'None'}'),
+                Text('Selected Action: $_selectedActionType'),
+                if (_selectedActionType == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL")
+                  Text('Deferral: ${_intInputController.text}'),
+                if (_selectedActionType == "DOWNLOAD_INSTALL_SCHEDULE")
+                  Text('Install Date: ${_dateInputController.text}'),
+                Text('Version Type: $_selectedVersionType'),
+                if (_selectedVersionType == "SPECIFIC_VERSION")
+                  Text('Specific Version: $_selectedSpecificVersion'),
+              ],
+            ),
+            isActive: _currentStep >= 3,
+          ),
+        ],
       ),
     );
   }
