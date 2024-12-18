@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/settings.dart';
 import 'screens/devicedetail.dart';
 import 'screens/computerdetail.dart';
+import 'screens/update.dart';
 import 'package:intl/intl.dart';
 import 'helper/func.dart';
 
@@ -628,32 +629,6 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class UpdatesScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    List<String> updates = [
-      'Update 1: New features added.',
-      'Update 2: Bug fixes applied.',
-      'Update 3: System performance improved.',
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Updates'),
-      ),
-      body: ListView.builder(
-        itemCount: updates.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            leading: Icon(Icons.update),
-            title: Text(updates[index]),
-          );
-        },
       ),
     );
   }

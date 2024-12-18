@@ -123,3 +123,51 @@ Future<void> sendDeviceCommand(String command, String deviceId) async {
     print('Exception occurred: $e');
   }
 }
+
+Future<Map<String, dynamic>?> fetchComputerGroups() async {
+  final prefs = await SharedPreferences.getInstance();
+  final url = prefs.getString('url') ?? '';
+  final authToken = await getValidToken();
+
+  try {
+    final response = await http.get(
+      Uri.parse('$url/JSSResource/computergroups'),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      print(response.statusCode);
+    }
+  } catch (e) {
+    print('Error fetching details: $e');
+  }
+  return null;
+}
+
+Future<Map<String, dynamic>?> fetchDevicesGroups() async {
+  final prefs = await SharedPreferences.getInstance();
+  final url = prefs.getString('url') ?? '';
+  final authToken = await getValidToken();
+
+  try {
+    final response = await http.get(
+      Uri.parse('$url/JSSResource/mobiledevicegroups'),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      print(response.statusCode);
+    }
+  } catch (e) {
+    print('Error fetching details: $e');
+  }
+  return null;
+}
