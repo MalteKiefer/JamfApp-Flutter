@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Für die Datumsauswahl
 
-class UpdatesStepperScreen extends StatefulWidget {
+class UpdatesScreen extends StatefulWidget {
   final List<dynamic> computerGroups;
 
-  UpdatesStepperScreen({required this.computerGroups});
+  UpdatesScreen({required this.computerGroups});
 
   @override
-  _UpdatesStepperScreenState createState() => _UpdatesStepperScreenState();
+  UpdatesScreenState createState() => UpdatesScreenState();
 }
 
-class _UpdatesStepperScreenState extends State<UpdatesStepperScreen> {
+class UpdatesScreenState extends State<UpdatesScreen> {
   late List<dynamic> _computerGroups;
   dynamic _selectedGroup;
   String? _selectedVersionType;
