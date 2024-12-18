@@ -124,7 +124,7 @@ Future<void> sendDeviceCommand(String command, String deviceId) async {
   }
 }
 
-Future<Map<String, dynamic>?> fetchComputerGroups() async {
+Future<List> fetchComputerGroups() async {
   final prefs = await SharedPreferences.getInstance();
   final url = prefs.getString('url') ?? '';
   final authToken = await getValidToken();
@@ -137,16 +137,16 @@ Future<Map<String, dynamic>?> fetchComputerGroups() async {
         'Accept': 'application/json',
       },
     );
-    print(response.body);
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final data = json.decode(response.body);
+      return data['computer_groups'] as List;
     } else {
-      print(response.statusCode);
+      throw Exception('Failed to fetch computer groups');
     }
   } catch (e) {
     print('Error fetching details: $e');
+    return [];
   }
-  return null;
 }
 
 Future<Map<String, dynamic>?> fetchDevicesGroups() async {

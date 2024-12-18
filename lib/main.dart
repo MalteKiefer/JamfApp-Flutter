@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
         authToken = tokenData['token'];
         prefs.setString('authToken', authToken.toString());
 
-        await fetchComputerGroups();
+        groups = await fetchComputerGroups();
 
         // Fetch mobile devices
         final mobileResponse = await http.get(
