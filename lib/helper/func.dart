@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -57,27 +59,60 @@ Future<String?> getValidToken() async {
   }
 }
 
-Future<String?> sendMobileDeviceCommand(String command, String deviceId) async {
+Future<String?> sendMobileDeviceCommand(String command, String deviceId,
+    {bool preserveDataPlan = false,
+    bool disallowProximitySetup = false,
+    bool clearActivationLock = false}) async {
   final prefs = await SharedPreferences.getInstance();
   final url = prefs.getString('url') ?? '';
   final authToken = await getValidToken();
-  Uri fullurl = Uri();
+  Uri fullUrl = Uri();
   String? generatedCode;
 
   if (command == 'DeviceLock') {
     Random random = Random();
     generatedCode = (random.nextInt(900000) + 100000)
         .toString(); // Generiere den 6-stelligen Code
-    fullurl = Uri.parse(
+    fullUrl = Uri.parse(
         '$url/JSSResource/computercommands/command/$command/passcode/$generatedCode/id/$deviceId');
+  } else if (command == 'EraseDevice') {
+    fullUrl = Uri.parse('$url/api/v2/mobile-devices/erase');
+
+    final parameters = {
+      "preserveDataPlan": preserveDataPlan,
+      "disallowProximitySetup": disallowProximitySetup,
+      "clearActivationLock": clearActivationLock
+    } as Map<String, dynamic>;
+
+    try {
+      final response = await http.post(
+        fullUrl,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(parameters),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('EraseDevice command sent successfully!');
+        return null;
+      } else {
+        print('Error: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Exception occurred: $e');
+      return null;
+    }
   } else {
-    fullurl = Uri.parse(
+    fullUrl = Uri.parse(
         '$url/JSSResource/mobiledevicecommands/command/$command/id/$deviceId');
   }
 
   try {
     final response = await http.post(
-      fullurl,
+      fullUrl,
       headers: {
         'Authorization': 'Bearer $authToken',
         'Content-Type': 'application/json',
@@ -171,4 +206,54 @@ Future<Map<String, dynamic>?> fetchDevicesGroups() async {
     print('Error fetching details: $e');
   }
   return null;
+}
+
+Future<void> sendUpdateCommand({
+  required String objectType,
+  required String groupId,
+  required String updateAction,
+  required String versionType,
+  String? specificVersion,
+  String? forceInstallLocalDateTime,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final url = prefs.getString('url') ?? '';
+  final authToken = await getValidToken();
+
+  final apiUrl = Uri.parse('$url/api/v1/managed-software-updates/plans/group');
+
+  // Build the parameters map.
+  final parameters = {
+    "group": {
+      "objectType": objectType,
+      "groupId": groupId,
+    },
+    "config": {
+      "updateAction": updateAction,
+      "versionType": versionType,
+      if (specificVersion != null) "specificVersion": specificVersion,
+      if (forceInstallLocalDateTime != null)
+        "forceInstallLocalDateTime": forceInstallLocalDateTime,
+    },
+  };
+
+  try {
+    final response = await http.post(
+      apiUrl,
+      headers: {
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(parameters),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('Update command sent successfully!');
+    } else {
+      print('Error: ${response.statusCode} - ${response.body}');
+    }
+  } catch (e) {
+    print('Exception occurred: $e');
+  }
 }

@@ -154,23 +154,66 @@ class DeviceDetailScreen extends StatelessWidget {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
+                  bool preserveDataPlan = true;
+                  bool disallowProximitySetup = false;
+                  bool clearActivationLock = false;
+
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (context) {
-                      return AlertDialog(
-                        title: Text('Confirm Erase Device'),
-                        content: Text(
-                            'Are you sure you want to erase this device? This action cannot be undone.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: Text('Confirm'),
-                          ),
-                        ],
+                      return StatefulBuilder(
+                        builder: (context, setState) {
+                          return AlertDialog(
+                            title: Text('Confirm Erase Device'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Are you sure you want to erase this device? This action cannot be undone.',
+                                ),
+                                CheckboxListTile(
+                                  title: Text("Preserve Data Plan"),
+                                  value: preserveDataPlan,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      preserveDataPlan = value ?? false;
+                                    });
+                                  },
+                                ),
+                                CheckboxListTile(
+                                  title: Text("Disallow Proximity Setup"),
+                                  value: disallowProximitySetup,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      disallowProximitySetup = value ?? false;
+                                    });
+                                  },
+                                ),
+                                CheckboxListTile(
+                                  title: Text("Clear Activation Lock"),
+                                  value: clearActivationLock,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      clearActivationLock = value ?? false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: Text('Confirm'),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
                   );
@@ -180,6 +223,9 @@ class DeviceDetailScreen extends StatelessWidget {
                       "EraseDevice",
                       deviceDetails['mobile_device']['general']['id']
                           .toString(),
+                      preserveDataPlan: preserveDataPlan,
+                      disallowProximitySetup: disallowProximitySetup,
+                      clearActivationLock: clearActivationLock,
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Erase Device command sent.')),
