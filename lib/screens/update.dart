@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Für die Datumsauswahl
+import '../helper/func.dart';
 
 class UpdatesScreen extends StatefulWidget {
   final List<dynamic> computerGroups;
@@ -266,11 +267,52 @@ class UpdatesScreenState extends State<UpdatesScreen> {
                         'Version Type: ${_selectedVersionType != null ? versionTypes.firstWhere((type) => type['value'] == _selectedVersionType)['text'] : 'None'}'),
                     Text(
                         'Specific Version: ${_selectedSpecificVersion ?? 'None'}'),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (_currentStep == 4) {
+                          // Werte aus den Controllern und Auswahlmöglichkeiten holen
+                          final objectType = 'COMPUTER_GROUP';
+                          final groupId = _selectedGroup?['id'] ?? '1';
+                          final updateAction = _selectedActionType ??
+                              'DOWNLOAD_INSTALL_ALLOW_DEFERRAL';
+                          final versionType =
+                              _selectedVersionType ?? 'SPECIFIC_VERSION';
+                          final specificVersion =
+                              _selectedSpecificVersion?.isNotEmpty == true
+                                  ? _selectedSpecificVersion
+                                  : null;
+                          final forceInstallLocalDateTime =
+                              _dateInputController.text.isNotEmpty
+                                  ? _dateInputController.text
+                                  : null;
+
+                          // Funktionsaufruf
+                          await sendUpdateCommand(
+                            objectType: objectType,
+                            groupId: groupId,
+                            updateAction: updateAction,
+                            versionType: versionType,
+                            specificVersion: specificVersion,
+                            forceInstallLocalDateTime:
+                                forceInstallLocalDateTime,
+                          );
+
+                          // Rückmeldung anzeigen
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Update command sent successfully!')),
+                          );
+                        }
+                      },
+                      child: Text(_currentStep == 4 ? 'Update' : 'Continue'),
+                    ),
                   ],
                 ),
-                isActive: _currentStep >= 3,
+                isActive: _currentStep >= 4,
                 state:
-                    _currentStep == 3 ? StepState.complete : StepState.indexed,
+                    _currentStep == 4 ? StepState.complete : StepState.indexed,
               ),
             ],
           ),
