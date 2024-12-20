@@ -155,7 +155,8 @@ class ComputerDetailScreen extends StatelessWidget {
               margin: const EdgeInsets.only(top: 10.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, // Button color
+                  backgroundColor:
+                      const Color.fromARGB(255, 240, 154, 148), // Button color
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
@@ -204,6 +205,89 @@ class ComputerDetailScreen extends StatelessWidget {
                   }
                 },
                 child: Text('Lock Device'),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 10.0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Button color
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  bool? confirmDeletion = await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Confirm Deletion'),
+                        content:
+                            Text('Are you sure you want to erase this device?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(false); // Cancel
+                            },
+                            child: Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(true); // Confirm
+                            },
+                            child: Text('Erase'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (confirmDeletion == true) {
+                    String? generatedCode = await sendMobileDeviceCommand(
+                      "Erase Device",
+                      deviceDetails['computer']['general']['id'].toString(),
+                    );
+
+                    if (generatedCode != null) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Device erased'),
+                            content: Text(
+                                'The device has been erased. PIN: $generatedCode'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Error'),
+                            content: Text(
+                                'Failed to erase the device. Please try again.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  }
+                },
+                child: Text('Erase Device'),
               ),
             ),
           ],

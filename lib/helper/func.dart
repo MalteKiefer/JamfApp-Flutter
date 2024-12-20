@@ -132,30 +132,64 @@ Future<String?> sendMobileDeviceCommand(String command, String deviceId,
   }
 }
 
-Future<void> sendDeviceCommand(String command, String deviceId) async {
+Future<String?> sendDeviceCommand(String command, String deviceId) async {
   final prefs = await SharedPreferences.getInstance();
   final url = prefs.getString('url') ?? '';
   final authToken = await getValidToken();
+  String? generatedCode;
 
-  final fullurl = Uri.parse(
-      '$url/JSSResource/computercommands/command/$command/id/$deviceId');
+  if (command == 'EraseComputer') {
+    Random random = Random();
+    generatedCode = (random.nextInt(900000) + 100000).toString();
+    final fullUrl = Uri.parse('$url/api/v1/computer-inventory//erase');
 
-  try {
-    final response = await http.post(
-      fullurl,
-      headers: {
-        'Authorization': 'Bearer $authToken',
-        'Content-Type': 'application/json',
-      },
-    );
+    final parameters = {"pin": generatedCode} as Map<String, dynamic>;
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print('Command sent successfully!');
-    } else {
-      print('Error: ${response.statusCode} - ${response.body}');
+    try {
+      final response = await http.post(
+        fullUrl,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(parameters),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('EraseDevice command sent successfully!');
+        return generatedCode;
+      } else {
+        print('Error: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Exception occurred: $e');
+      return null;
     }
-  } catch (e) {
-    print('Exception occurred: $e');
+  } else {
+    final fullurl = Uri.parse(
+        '$url/JSSResource/computercommands/command/$command/id/$deviceId');
+
+    try {
+      final response = await http.post(
+        fullurl,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return null;
+        print('Command sent successfully!');
+      } else {
+        return null;
+        print('Error: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      return null;
+      print('Exception occurred: $e');
+    }
   }
 }
 
