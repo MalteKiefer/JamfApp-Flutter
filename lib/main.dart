@@ -367,7 +367,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
               itemBuilder: (context, index) {
                 final device = filteredDevices[index];
                 final isSupervised =
-                    (device['supervised'] == true || device['managed'] == true);
+                    ((device['supervised'] == true && widget.isMobile) ||
+                        (!widget.isMobile && device['managed'] == true));
                 final username = device['username'];
                 final lastcheckindate = device['report_date_utc'];
                 bool offline = false;
@@ -389,7 +390,10 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                             .phone_android // Immer Handy-Icon für mobile Geräte
                         : Icons.computer, // Computer-Icon für Computer
                     color: widget.isMobile
-                        ? Colors.lightGreen // Immer grün für mobile Geräte
+                        ? (isSupervised
+                            ? Colors.lightGreen
+                            : Color.fromARGB(255, 236, 99,
+                                99)) // Immer grün für mobile Geräte
                         : (offline
                             ? Colors.blueGrey
                             : Colors.lightGreen), // Grau oder grün für Computer
