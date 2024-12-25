@@ -38,8 +38,8 @@ Future<String?> getValidToken() async {
     final tokenResponse = await http.post(
       Uri.parse('$savedUrl/api/v1/auth/token'),
       headers: {
-        'Authorization': 'Basic ' +
-            base64Encode(utf8.encode('$savedUsername:$savedPassword')),
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('$savedUsername:$savedPassword'))}',
         'Accept': 'application/json',
       },
     );
